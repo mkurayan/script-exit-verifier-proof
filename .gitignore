@@ -1,0 +1,18 @@
+.snapshots/
+node_modules/
+
+.env
+.idea
+.vscode
+.direnv
+.DS_Store
+
+# Yarn
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/sdks
+!.yarn/versions
+
+finalized.bin

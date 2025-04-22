@@ -1,0 +1,14 @@
+{
+  "name": "script-exit-verifier-proof",
+  "version": "0.0.1",
+  "description": "Community Staking Module for Lido protocol",
+  "license": "GPL-3.0",
+  "private": true,
+  "scripts": {
+    "proof": "node ./generator.mjs"
+  },
+  "dependencies": {
+    "@lodestar/types": "^1.23.1"
+  },
+  "packageManager": "yarn@4.1.1"
+}
