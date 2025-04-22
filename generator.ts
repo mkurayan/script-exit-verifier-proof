@@ -5,6 +5,7 @@ import {
   ProofType,
   SingleProof,
 } from "@chainsafe/persistent-merkle-tree";
+import { hashTreeRoot } from "./hashTreeRoot";
 
 main(773833, ssz.deneb).catch();
 
@@ -21,18 +22,10 @@ export async function main(validatorIndex, Fork = ssz.deneb) {
   const r = await readBinaryState("finalized.bin");
   const state = Fork.BeaconState.deserializeToView(r);
 
-  const finalizedEpoch = state.finalizedCheckpoint.epoch;
-  const slotsPerEpoch = 32;
   const slotTimeSeconds = 12;
-  const finalizedSlot = finalizedEpoch * slotsPerEpoch;
   const finalizedTimestamp =
-    state.genesisTime + finalizedSlot * slotTimeSeconds;
-  console.log("genesisTime", state.genesisTime);
-  console.log("finalizedTimestamp", finalizedTimestamp);
-
-  // Write code to get the latest finalized state block root
-  const blockRoot = toHex(state.finalizedCheckpoint.root);
-  console.log("Block root", blockRoot);
+    state.genesisTime + state.latestBlockHeader.slot * slotTimeSeconds;
+  console.log("slot timestamp", finalizedTimestamp);
 
   const validator = state.validators.get(validatorIndex);
 
@@ -45,9 +38,23 @@ export async function main(validatorIndex, Fork = ssz.deneb) {
     gindex,
   }) as SingleProof;
 
+  const beaconBlockHeader = {
+    slot: state.slot,
+    proposer_index: state.latestBlockHeader.proposerIndex,
+    parent_root: toHex(state.latestBlockHeader.parentRoot),
+    body_root: toHex(state.latestBlockHeader.bodyRoot),
+    state_root: toHex(state.hashTreeRoot()),
+  } as any;
+
   console.log({
-    block: state.blockRoots[0],
-    stateRoot: toHex(state.hashTreeRoot()),
+    beaconBlockHeader,
+    beaconBlockHeaderRoot: hashTreeRoot({
+      slot: BigInt(beaconBlockHeader.slot),
+      proposerIndex: BigInt(beaconBlockHeader.proposer_index),
+      parentRoot: beaconBlockHeader.parent_root,
+      stateRoot: beaconBlockHeader.state_root,
+      bodyRoot: beaconBlockHeader.body_root,
+    }),
     validator: {
       ...(Validator.toJson(validator) || {}),
       index: validatorIndex,
@@ -67,10 +74,6 @@ async function readBinaryState(filepath) {
   return Buffer.concat(buffer);
 }
 
-export function fromHex(s) {
-  return Uint8Array.from(s.match(/.{1,2}/g).map((byte) => parseInt(byte, 16)));
-}
-
-export function toHex(t) {
+function toHex(t) {
   return "0x" + Buffer.from(t).toString("hex");
 }
