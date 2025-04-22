@@ -1,14 +1,18 @@
 import fs from "fs";
 import { ssz } from "@lodestar/types";
-import { createProof, ProofType } from "@chainsafe/persistent-merkle-tree";
+import {
+  createProof,
+  ProofType,
+  SingleProof,
+} from "@chainsafe/persistent-merkle-tree";
 
-main(773833, ssz.deneb, ssz.deneb).catch();
+main(773833, ssz.deneb).catch();
 
 /**
  * @param {Object} opts
  * @param {number} opts.validatorIndex
  */
-async function main(validatorIndex, Fork = ssz.deneb) {
+export async function main(validatorIndex, Fork = ssz.deneb) {
   const Validator = Fork.BeaconState.getPathInfo(["validators", 0]).type;
 
   // http -d $CL_URL/eth/v2/debug/beacon/states/finalized Accept:application/octet-stream
@@ -17,17 +21,37 @@ async function main(validatorIndex, Fork = ssz.deneb) {
   const r = await readBinaryState("finalized.bin");
   const state = Fork.BeaconState.deserializeToView(r);
 
+  const finalizedEpoch = state.finalizedCheckpoint.epoch;
+  const slotsPerEpoch = 32;
+  const slotTimeSeconds = 12;
+  const finalizedSlot = finalizedEpoch * slotsPerEpoch;
+  const finalizedTimestamp =
+    state.genesisTime + finalizedSlot * slotTimeSeconds;
+  console.log("genesisTime", state.genesisTime);
+  console.log("finalizedTimestamp", finalizedTimestamp);
+
+  // Write code to get the latest finalized state block root
+  const blockRoot = toHex(state.finalizedCheckpoint.root);
+  console.log("Block root", blockRoot);
+
   const validator = state.validators.get(validatorIndex);
 
-  const { gindex } = Fork.BeaconState.getPathInfo(["validators", validatorIndex]);
+  const { gindex } = Fork.BeaconState.getPathInfo([
+    "validators",
+    validatorIndex,
+  ]);
   const proof = createProof(state.node, {
     type: ProofType.single,
     gindex,
-  });
+  }) as SingleProof;
 
   console.log({
+    block: state.blockRoots[0],
     stateRoot: toHex(state.hashTreeRoot()),
-    validator: { ...Validator.toJson(validator), index: validatorIndex },
+    validator: {
+      ...(Validator.toJson(validator) || {}),
+      index: validatorIndex,
+    },
     validatorProof: proof.witnesses.map(toHex),
   });
 }
@@ -35,7 +59,7 @@ async function main(validatorIndex, Fork = ssz.deneb) {
 async function readBinaryState(filepath) {
   const stream = fs.createReadStream(filepath);
 
-  const buffer = [];
+  const buffer: Buffer[] = [];
   for await (const chunk of stream) {
     buffer.push(chunk);
   }

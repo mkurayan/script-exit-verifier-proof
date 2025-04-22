@@ -4,11 +4,16 @@
   "description": "Community Staking Module for Lido protocol",
   "license": "GPL-3.0",
   "private": true,
+  "type": "module",
   "scripts": {
-    "proof": "node ./generator.mjs"
+    "proof": "npx tsx ./generator.ts",
+    "bbRoot": "npx tsx ./beaconBlockRoot.ts"
   },
   "dependencies": {
-    "@lodestar/types": "^1.23.1"
+    "@lodestar/types": "^1.23.1",
+    "@types/node": "^22.14.1",
+    "ethers": "6.13.5",
+    "tsx": "^4.19.3"
   },
   "packageManager": "yarn@4.1.1"
 }
