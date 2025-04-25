@@ -25,7 +25,6 @@ export async function main(validatorIndex, Fork = ssz.deneb) {
   const slotTimeSeconds = 12;
   const finalizedTimestamp =
     state.genesisTime + state.latestBlockHeader.slot * slotTimeSeconds;
-  console.log("slot timestamp", finalizedTimestamp);
 
   const validator = state.validators.get(validatorIndex);
 
@@ -40,20 +39,49 @@ export async function main(validatorIndex, Fork = ssz.deneb) {
 
   const beaconBlockHeader = {
     slot: state.slot,
-    proposer_index: state.latestBlockHeader.proposerIndex,
-    parent_root: toHex(state.latestBlockHeader.parentRoot),
-    body_root: toHex(state.latestBlockHeader.bodyRoot),
-    state_root: toHex(state.hashTreeRoot()),
+    proposerIndex: state.latestBlockHeader.proposerIndex,
+    parentRoot: toHex(state.latestBlockHeader.parentRoot),
+    bodyRoot: toHex(state.latestBlockHeader.bodyRoot),
+    stateRoot: toHex(state.hashTreeRoot()),
   } as any;
+
+  const validatorJson = (Validator.toJson(validator) || {}) as any;
+
+  console.log(
+    JSON.stringify({
+      header: beaconBlockHeader,
+      rootsTimestamp: finalizedTimestamp,
+    })
+  );
+
+  console.log("=========================");
+
+  console.log(
+    JSON.stringify({
+      // The index of an exit request in the VEBO exit requests data
+      exitRequestIndex: 1, //ToDo: get vebo index
+      // -------------------- Validator details -------------------
+      withdrawalCredentials: validatorJson.withdrawal_credentials,
+      effectiveBalance: validatorJson.effective_balance,
+      slashed: validatorJson.slashed,
+      activationEligibilityEpoch: validatorJson.activation_eligibility_epoch,
+      activationEpoch: validatorJson.activation_epoch,
+      withdrawableEpoch: validatorJson.withdrawable_epoch,
+      // ------------------------ Proof ---------------------------
+      validatorProof: proof.witnesses.map(toHex),
+    })
+  );
+
+  console.log("=========================");
 
   console.log({
     beaconBlockHeader,
     beaconBlockHeaderRoot: hashTreeRoot({
       slot: BigInt(beaconBlockHeader.slot),
-      proposerIndex: BigInt(beaconBlockHeader.proposer_index),
-      parentRoot: beaconBlockHeader.parent_root,
-      stateRoot: beaconBlockHeader.state_root,
-      bodyRoot: beaconBlockHeader.body_root,
+      proposerIndex: BigInt(beaconBlockHeader.proposerIndex),
+      parentRoot: beaconBlockHeader.parentRoot,
+      stateRoot: beaconBlockHeader.stateRoot,
+      bodyRoot: beaconBlockHeader.bodyRoot,
     }),
     validator: {
       ...(Validator.toJson(validator) || {}),
