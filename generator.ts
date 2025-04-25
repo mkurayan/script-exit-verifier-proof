@@ -7,7 +7,10 @@ import {
 } from "@chainsafe/persistent-merkle-tree";
 import { hashTreeRoot } from "./hashTreeRoot";
 
-main(773833, ssz.deneb).catch();
+const EXIT_REQUESTS_INDEX = 1; //ToDo: get vebo index
+const VALIDATOR_INDEX = 773833; //ToDo: get validator index
+
+main(VALIDATOR_INDEX, ssz.deneb).catch();
 
 /**
  * @param {Object} opts
@@ -57,19 +60,21 @@ export async function main(validatorIndex, Fork = ssz.deneb) {
   console.log("=========================");
 
   console.log(
-    JSON.stringify({
-      // The index of an exit request in the VEBO exit requests data
-      exitRequestIndex: 1, //ToDo: get vebo index
-      // -------------------- Validator details -------------------
-      withdrawalCredentials: validatorJson.withdrawal_credentials,
-      effectiveBalance: validatorJson.effective_balance,
-      slashed: validatorJson.slashed,
-      activationEligibilityEpoch: validatorJson.activation_eligibility_epoch,
-      activationEpoch: validatorJson.activation_epoch,
-      withdrawableEpoch: validatorJson.withdrawable_epoch,
-      // ------------------------ Proof ---------------------------
-      validatorProof: proof.witnesses.map(toHex),
-    })
+    JSON.stringify([
+      {
+        // The index of an exit request in the VEBO exit requests data
+        exitRequestIndex: EXIT_REQUESTS_INDEX,
+        // -------------------- Validator details -------------------
+        withdrawalCredentials: validatorJson.withdrawal_credentials,
+        effectiveBalance: validatorJson.effective_balance,
+        slashed: validatorJson.slashed,
+        activationEligibilityEpoch: validatorJson.activation_eligibility_epoch,
+        activationEpoch: validatorJson.activation_epoch,
+        withdrawableEpoch: validatorJson.withdrawable_epoch,
+        // ------------------------ Proof ---------------------------
+        validatorProof: proof.witnesses.map(toHex),
+      },
+    ])
   );
 
   console.log("=========================");
