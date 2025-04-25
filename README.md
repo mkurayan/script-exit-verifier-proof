@@ -6,3 +6,11 @@ Consider running the following command to obtain it (it assumes httpie to be ins
 ```sh
 http -d $CL_URL/eth/v2/debug/beacon/states/finalized Accept:application/octet-stream
 ```
+
+```sh
+yarn install
+```
+
+```sh
+yarn proof
+```
